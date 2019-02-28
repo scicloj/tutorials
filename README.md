@@ -6,11 +6,13 @@ It is part of Scicloj -- our community effort to create more dialogue and coordi
 
 Tutorials will also appear at the Scicloj website.
 
-## Organization of this repo
+## Guidelines and organization of this repo
 
 Soon we will design a more refined directory structure, to reflect different topics, kaggle competetions, etc.
 
 For now, please put your tutorials under the `drafts` subdirectory.
+
+Please mention your (nick)name(s) at the beginning of any repo you write.
 
 ## A tutorial's lifecycle
 
