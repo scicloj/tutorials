@@ -30,8 +30,6 @@ Install [Lein-Jupyter](https://github.com/clojupyter/lein-jupyter) by running `l
 
 Run `jupyter notebook` in a directory containing the project, and just access the tutorials as juypter notebooks.
 
-One may also use  which wraps Clojupyter and adds some tooling, such as [Parinfer](https://shaunlebron.github.io/parinfer/).
-
 ## Contact
 
 In addition to the Issues section of this repo, tutorials can be discussed at the [scicloj-tutorials](https://clojurians.zulipchat.com/#narrow/stream/187445-scicloj-tutorials) stream at the Clojurians-Zulip.
