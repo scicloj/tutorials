@@ -10,7 +10,7 @@ Tutorials will also appear at the Scicloj website.
 
 Soon we will design a more refined directory structure, to reflect different topics, kaggle competetions, etc.
 
-For now, please put your tutorials under the `drafts` subdirectory.
+For now, please put your tutorials under the **`drafts`** subdirectory.
 
 Please mention your (nick)name(s) at the beginning of any repo you write.
 
@@ -24,13 +24,17 @@ We distinguish between two kinds of tutorials:
 
 By default, tutorials are experimental. An tutorial's author can ask to mark it as recommended. To agree on that, at least 2 of the group members will have to read it and feel that is fine.
 
-## Installation
+## Contributing
 
-Install [Lein-Jupyter](https://github.com/clojupyter/lein-jupyter) by running `lein jupyter install-kernel` once under this project.
+You are invited to contribute. Please contact us if you wish to.
 
-## Usage
+For the tutorials you write, you can use plain Clojure code, Org-mode, etc. Jupyter will be supported soon, when its [upcoming version](https://github.com/clojupyter/clojupyter/pull/79) is available.
 
-Run `jupyter notebook` in a directory containing the project, and just access the tutorials as juypter notebooks.
+We will soon add guidelines and examples for the various formats.
+
+For external dependencies, you can use [alembic](https://github.com/pallet/alembic). See the [example](./src/drafts/clj_example.clj).
+
+Everything here is under one Leiningen project. This should be fine for most use cases. If, for some reason, you need to create a separate project (e.g., using a different Clojure version), then please do so under a subdirectory.
 
 ## Contact
 
