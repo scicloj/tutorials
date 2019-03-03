@@ -38,5 +38,5 @@ Everything here is under one Leiningen project. This should be fine for most use
 
 ## Contact
 
-In addition to the Issues section of this repo, tutorials can be discussed at the [scicloj-tutorials](https://clojurians.zulipchat.com/#narrow/stream/187445-scicloj-tutorials) stream at the Clojurians-Zulip.
+In addition to the Issues section of this repo, the task group working on these tutorials has a private stream at the [clojurians-zulipchat](https://clojurians.zulipchat.com/). To join that stream, please contact Daniel Slutsky there.
 
