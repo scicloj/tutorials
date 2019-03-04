@@ -12,7 +12,7 @@ Soon we will design a more refined directory structure, to reflect different top
 
 For now, please put your tutorials under the **`drafts`** subdirectory.
 
-Please **do not put data files** in git. It is better to add a function or script for bringing them locall.
+Please **do not put data files** in git. It is better to add a function or script for bringing them locally.
 
 Please mention your (nick)name(s) at the beginning of any repo you write.
 
