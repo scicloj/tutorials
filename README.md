@@ -2,7 +2,7 @@
 
 In this repo is a place for Clojure data science tutorials created by the community.
 
-It is part of Scicloj -- our community effort to create more dialogue and coordination among Clojurians doing data science.
+It is part of [Scicloj](https://twitter.com/scicloj) -- our community effort to create more dialogue and coordination among Clojurians creating open source solutions for data science.
 
 Tutorials will also appear at the Scicloj website.
 
