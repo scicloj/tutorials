@@ -60,3 +60,8 @@ TBD
 
 In addition to the Issues section of this repo, the task group working on these tutorials has a private stream at the [clojurians-zulipchat](https://clojurians.zulipchat.com/). To join that stream, please contact Daniel Slutsky there.
 
+## License
+
+Copyright © 2019 Scicloj
+
+Distributed under the Eclipse Public License.
