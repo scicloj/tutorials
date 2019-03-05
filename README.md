@@ -6,6 +6,12 @@ It is part of Scicloj -- our community effort to create more dialogue and coordi
 
 Tutorials will also appear at the Scicloj website.
 
+## Contributing
+
+You are invited to contribute. Please contact us if you wish to.
+
+For the tutorials you write, you can use Jupyter, plain Clojure code, Org-mode, etc. 
+
 ## Guidelines and organization of this repo
 
 Soon we will design a more refined directory structure, to reflect different topics, kaggle competetions, etc.
@@ -26,17 +32,29 @@ We distinguish between two kinds of tutorials:
 
 By default, tutorials are experimental. An tutorial's author can ask to mark it as recommended. To agree on that, at least 2 of the group members will have to read it and feel that is fine.
 
-## Contributing
+## Usage 
 
-You are invited to contribute. Please contact us if you wish to.
+### Jupyter
 
-For the tutorials you write, you can use plain Clojure code, Org-mode, etc. Jupyter will be supported soon, when its [upcoming version](https://github.com/clojupyter/clojupyter/pull/79) is available.
+- On your first use, install the Clojure jupyter kernel of [clojupyter](https://github.com/clojupyter/clojupyter) as instructed [there](https://github.com/clojupyter/clojupyter#installation). 
+- Run Jupyter by `jupyter notebook`.
+- Open notebooks from the Jupyter UI at the browser.
+- For external dependencies, use clojupyter's tooling. See the [example](./src/drafts/clojupyter_example.ipynb).
 
-We will soon add guidelines and examples for the various formats.
+### Lein Jupyter
+TBD
 
-For external dependencies, you can use [alembic](https://github.com/pallet/alembic). See the [example](./src/drafts/clj_example.clj).
+### Plain Clojure
+
+- On your first use, install Leiningen if you don't have it.
+- Run Leiningen's REPL by `lein repl` at the project directory.
+- Connect to the REPL from your favorite editor.
+- For external dependencies, use [alembic](https://github.com/pallet/alembic). See the [example](./src/drafts/clj_example.clj).
 
 Everything here is under one Leiningen project. This should be fine for most use cases. If, for some reason, you need to create a separate project (e.g., using a different Clojure version), then please do so under a subdirectory.
+
+### Org-mode
+TBD
 
 ## Contact
 
