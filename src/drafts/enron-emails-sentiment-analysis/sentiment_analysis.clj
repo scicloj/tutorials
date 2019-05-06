@@ -135,8 +135,8 @@
 
 ;; # Plot Sentiment Over Time
 
-(->> (take 10 sentiment)
-     (map #(select-keys % [:date-sent :avg-sentiment])))
+(pprint (->> (take 10 sentiment)
+             (map #(select-keys % [:date-sent :avg-sentiment]))))
 
 (defn same-day? [t1 t2]
     (t/equal? (t/floor t1 t/day) (t/floor t2 t/day)))
@@ -183,7 +183,6 @@
          (map #(hash-map :date (str (nth % 0))
                          :avg-sentiment (nth % 1)
                          :moving-avg (nth % 2)))))
-         
 
 ;; +
 ;; (def line-plot
