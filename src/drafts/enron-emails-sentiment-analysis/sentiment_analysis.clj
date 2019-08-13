@@ -42,7 +42,7 @@
      (map helper/add-dependencies)
      doall)
 
-(print (str "Done!"))
+:done
 ;; -
 
 ;; The VADER repository that we are going to use ([nunoachenriques/vader-sentiment-analysis](https://github.com/nunoachenriques/vader-sentiment-analysis)) is as of this writing not available through clojure's repository hub (maven). Therefore, we need to load it locally. 
