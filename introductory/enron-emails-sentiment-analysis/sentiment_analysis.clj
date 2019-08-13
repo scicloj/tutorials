@@ -23,6 +23,10 @@
 ;; * Load a local dependency 
 ;; * Chart data using the [oz](https://github.com/metasoarous/oz) visualization library (base don vega-lite).
 
+;; ## Get the Data
+
+;; This tutorial is based on analysis of a portion of the [Enron Email Dataset](https://www.cs.cmu.edu/~enron/). There's a script to pull this data in the `Makefile` located in this directory. You should be able to pull the data and place it in the location assumed by this tutorial simply by issuing the following command **in the directory in which this tutorial file is located:** `make get-data`. 
+
 ;; ## Prepare the Notebook 
 
 ;; To get started, we need to prepare the clojure notebook context. Because we are using the clojupyter kernel, we have access to core clojure methods, but we will also be using a set of other dependencies. We load these dependencies using `clojupyter.misc.helper/add-dependences`.
@@ -145,6 +149,8 @@
 
 (pprint sample-msg)
 ;; -
+
+;; > Note: If you get an error at this stage something like `data/enron_mail/maildir/arnold-j/_sent_mail/36. (No such file or directory)`, it's probably because you didn't get the data as described [here](http://localhost:8888/notebooks/sentiment_analysis.ipynb#Get-the-Data)
 
 ;; ## Read All Messages
 
