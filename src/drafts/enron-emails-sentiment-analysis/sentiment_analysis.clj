@@ -69,7 +69,7 @@
 
 ;; ## Declaring a namespace
 
-;; A central feature of all clojure programs is the use of namespaces. All methods in clojure programs exist in a namespace. Each namespace also includes dependency declarations. The same is true when using Clojure in a notebook context.
+;; All methods in clojure programs exist in a namespace. Each namespace also includes dependency declarations. The same is true when using Clojure in a notebook context.
 ;;
 ;; The default namespace for clojure in a notebook context is `user`. We can see that that is the case by inspecting the current namespace like so:
 
