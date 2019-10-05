@@ -1,4 +1,5 @@
 .cpcache
 .lein-repl-history
 .nrepl-port
-target
+targetdata
+data/
