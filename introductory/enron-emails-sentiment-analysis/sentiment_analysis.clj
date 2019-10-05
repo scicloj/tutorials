@@ -283,8 +283,7 @@
 (defn get-time-data [{:keys [date-sent avg-sentiment]}]
     {:date (-> date-sent
                c/from-date
-               (t/floor t/day)
-               (c/to-date))
+               (t/floor t/day))
      :avg-sentiment avg-sentiment})
 
 (->> sentiment
@@ -356,5 +355,4 @@
                          :y {:field "moving-avg"}}}]})
 
 ;; Render the plot
-;; (oz/view! line-plot)
 (oz/view! layered-line-plot)
