@@ -23,6 +23,12 @@
 ;; * Load a local dependency 
 ;; * Chart data using the [oz](https://github.com/metasoarous/oz) visualization library (base don vega-lite).
 
+;; ## Hypothesis/Question
+;;
+;; Before we get going, let's think about what question we might ask of the enron dataset. Let's tkae the approach of a historian who is just coming into contact with this dataset. An initial question that comes to mind is whether or not the general sentiment of the emails sent by enron employees spiked or bottomed-out at key points. If a historian could identify these points in time, it might help the historian beging to construct key points in the narrative they hope to build about Enron.
+;;
+;; So let's take that as our question: did Enron email sentiment peak or bottom-out at key points as the company moved toward its moment of collapse at the end of 2001?
+
 ;; ## Get the Data
 
 ;; This tutorial is based on analysis of a portion of the [Enron Email Dataset](https://www.cs.cmu.edu/~enron/). There's a script to pull this data in the `Makefile` located in this directory. You should be able to pull the data and place it in the location assumed by this tutorial simply by issuing the following command **in the directory in which this tutorial file is located:** `make get-data`. 
@@ -358,3 +364,8 @@
 
 ;; Render the plot
 (oz/view! layered-line-plot)
+;; -
+
+;; ## Conclusions
+;;
+;; Now that we've done a basic plot of the sentiment in sent mail from Enron employees, we can reconsider our starting question: did enron email sentiment spike or bottom-out at any point. Interestingly, the answer from this initial view seems to be a big NO. At least from this zoomed-out view, there aren't any sharp peaks or troughs.
