@@ -26,6 +26,8 @@
 ;; ## Get the Data
 
 ;; This tutorial is based on analysis of a portion of the [Enron Email Dataset](https://www.cs.cmu.edu/~enron/). There's a script to pull this data in the `Makefile` located in this directory. You should be able to pull the data and place it in the location assumed by this tutorial simply by issuing the following command **in the directory in which this tutorial file is located:** `make get-data`. 
+;;
+;; > Note: This download will take a while. The enron dataset is upwards of 400 MB. So be patient at the start here.
 
 ;; ## Prepare the Notebook 
 
