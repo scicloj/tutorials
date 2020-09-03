@@ -58,7 +58,11 @@ TBD
 
 ## Contact
 
-In addition to the Issues section of this repo, the task group working on these tutorials has a private stream at the [clojurians-zulipchat](https://clojurians.zulipchat.com/). To join that stream, please contact Daniel Slutsky there.
+The proper place to discuss this is the [#data-science stream](https://clojurians.zulipchat.com/#narrow/stream/151924-data-science) at the [clojurians-zulipchat](https://clojurians.zulipchat.com/).
+
+You can find past discussions at the [#scicloj-tutorials stream](https://clojurians.zulipchat.com/#narrow/stream/187445-scicloj-tutorials).
+
+Here is [some general info about our the Scicloj chat streams](https://scicloj.github.io/pages/chat_streams/).
 
 ## License
 
