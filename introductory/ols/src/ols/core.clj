@@ -23,35 +23,38 @@
   (ds/->dataset "resources/clj-ols-data.csv" {:parser-fn {"date" [:local-date "yyyyMMdd"]
                                                           "vgu0" :float32}}))
 
-(defn stock-data-date-filter [yyyy-MM-dd]
+(defn stock-data-date-filter
   "Parsing dates allows for easy filtering"
+  [yyyy-MM-dd]
   (ds/filter-column #(.isAfter ^LocalDate % (LocalDate/parse yyyy-MM-dd)) "date" stock-data))
 
-(defn ds-returns [dataset]
+(defn ds-returns
   "Gets returns for every numerical column, leaves others unchanged.
   This is neat but can lead to problems if one is using int for dates e.g. 20100101
   In Python this would be df.pct_change()
   WARNING: without the last line, we get an array of same length with 0 in the first row - would nil be better?"
+  [dataset]
   (let [raw (tcapi/update-columns
               dataset
               :type/numerical
               #(dfn/fixed-rolling-window 2 (fn [[a b]] (dec (/ b a))) %))]
     (ds/tail (dec (ds/row-count raw)) raw)))                  ;we remove the first row that otherwise comes as 0.0
 
-(defn return-ols [y x dataset]
+(defn return-ols
   "Smile OLS. Will include intercept by default. This is the object you want to query.
   Example queries if result is called ols:
   (.coefficients ols)
   (.RSquared ols)
-  (.predict ols (double-array [1. 0.05])) ;seems you need the intercept here, set at 1.
-  "
+  (.predict ols (double-array [1. 0.05])) ;seems you need the intercept here, set at 1."
+  [y x dataset]
   (->> (ds/select-columns dataset [y x])
        (ds-returns)
        (tech.libs.smile.data/dataset->dataframe)
        (OLS/fit (Formula/lhs ^String y))))
 
-(defn ols-beta [y x dataset]
+(defn ols-beta
   "Get straight to the beta"
+  [y x dataset]
   (nth (.coefficients ^LinearModel (return-ols y x dataset)) 1))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
