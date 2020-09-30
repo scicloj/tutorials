@@ -190,13 +190,13 @@
 (ds/filter-column "Bond-42" :Bond res)
 ;|   :Bond |     :Sector | :Country | :Used_Duration | :Used_Rating_Score | :Used_ZTW | :legacy |  :new |  :svr |
 ;|---------|-------------|----------|----------------|--------------------|-----------|---------|-------|-------|
-;| Bond-42 | Ovy_naq_Gnf |       BH |           1.16 |                6.0 |      75.2 |   125.0 | 105.7 | 75.25 |
+;| Bond-42 | Ovy_naq_Gnf |       BH |           1.16 |                6.0 |      75.2 |   118.0 | 103.1 | 75.15 |
 
 (ols-predict-scalar legacymodel {:Used_Duration 1.16 :Used_Rating_Score 6.0 :Country "BH" :Sector "Ovy_naq_Gnf"})
-;=> 124.97641006343288
+;=> 118.01535809799998
 
 (ols-predict-scalar newmodel {:Used_Duration 1.16 :Used_Rating_Score 6.0 :Country "BH" :Sector "Ovy_naq_Gnf"})
-;=> 105.65258908406659
+;=> 103.1329755725273
 
 (svr-predict-scalar svrmodel {:Used_Duration 1.16 :Used_Rating_Score 6.0 :Country "BH" :Sector "Ovy_naq_Gnf"})
-;=> 75.24586245559732
+;=> 75.14990884257375
