@@ -2,7 +2,8 @@
   (:require
     [tech.ml.dataset :as ds]
     [tablecloth.api :as tcapi]
-    [tech.v2.datatype.functional :as dfn])
+    [tech.v2.datatype.functional :as dfn]
+    [ols.svr :as svr])
   (:import
     (java.time LocalDate)
     (smile.regression OLS LinearModel)
