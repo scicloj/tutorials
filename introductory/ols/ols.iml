@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module cursive.leiningen.project.LeiningenProjectsManager.displayName="ols:0.1.0-SNAPSHOT" cursive.leiningen.project.LeiningenProjectsManager.isLeinModule="true" type="JAVA_MODULE" version="4">
+<module cursive.leiningen.project.LeiningenProjectsManager.displayName="ols:0.1.1-SNAPSHOT" cursive.leiningen.project.LeiningenProjectsManager.isLeinModule="true" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/classes" />
@@ -131,12 +131,12 @@
     <orderEntry type="library" name="Leiningen: org.xerial.larray/larray-mmap:0.4.1" level="project" />
     <orderEntry type="library" name="Leiningen: primitive-math:0.1.6" level="project" />
     <orderEntry type="library" name="Leiningen: redux:0.1.3" level="project" />
-    <orderEntry type="library" name="Leiningen: scicloj/tablecloth:1.0.0-pre-alpha9" level="project" />
+    <orderEntry type="library" name="Leiningen: scicloj/tablecloth:4.04" level="project" />
     <orderEntry type="library" name="Leiningen: techascent/tech.config:0.3.7" level="project" />
-    <orderEntry type="library" name="Leiningen: techascent/tech.datatype:5.12" level="project" />
+    <orderEntry type="library" name="Leiningen: techascent/tech.datatype:5.16" level="project" />
     <orderEntry type="library" name="Leiningen: techascent/tech.io:3.17" level="project" />
     <orderEntry type="library" name="Leiningen: techascent/tech.jna:3.23" level="project" />
-    <orderEntry type="library" name="Leiningen: techascent/tech.ml.dataset:4.01" level="project" />
+    <orderEntry type="library" name="Leiningen: techascent/tech.ml.dataset:4.04" level="project" />
     <orderEntry type="library" name="Leiningen: techascent/tech.parallel:2.8" level="project" />
     <orderEntry type="library" name="Leiningen: techascent/tech.resource:4.6" level="project" />
   </component>
