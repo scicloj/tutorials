@@ -1,6 +1,6 @@
 # ols
 
-A simple OLS tutorial using tech.ml.dataset and smile.
+A simple regression tutorial using tech.ml.dataset and smile. It includes simple one variable regression in the ols.clj file, and a more elaborate example with multiple factor OLS and Support Vector Regression in the svr.clj file.
 
 ## Usage
 
