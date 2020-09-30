@@ -28,7 +28,7 @@
    :id-name         :Bond
    :y               {:column :Used_ZTW :predict-fn #(Math/exp %)}
    :transformations [{:column :Used_ZTW :fn #(dfn/log (ds-pipe/col))}]
-   :one-hot         {:columns [:Country :Sector] :removals [:Country-BR :Sector-Financial]}
+   :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
    :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :args {:Used_Duration     [(dfn/mean (dataset :Used_Duration)) (dfn/standard-deviation (dataset :Used_Duration))]
                                                                          :Used_Rating_Score [(dfn/mean (dataset :Used_Rating_Score)) (dfn/standard-deviation (dataset :Used_Rating_Score))]}}})
 
@@ -40,7 +40,7 @@
    :y               {:column :Used_ZTW :predict-fn #(Math/exp %)}
    :transformations [{:column :Used_ZTW          :fn #(dfn/log (ds-pipe/col))}
                      {:column :Used_Duration     :fn #(dfn/log (ds-pipe/col))}]
-   :one-hot         {:columns [:Country :Sector] :removals [:Country-BR :Sector-Financial]}
+   :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
    :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :args {:Used_Duration nil
                                                                          :Used_Rating_Score [(dfn/mean (dataset :Used_Rating_Score)) (dfn/standard-deviation (dataset :Used_Rating_Score))]}}})
 
@@ -50,7 +50,7 @@
   {:dataset         dataset
    :id-name         :Bond
    :y               {:column :Used_ZTW :predict-fn identity}
-   :one-hot         {:columns [:Country :Sector] :removals [:Country-BR :Sector-Financial]}
+   :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
    :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :args {:Used_Duration [(dfn/mean (dataset :Used_Duration)) (dfn/standard-deviation (dataset :Used_Duration))]
                                                                          :Used_Rating_Score [(dfn/mean (dataset :Used_Rating_Score)) (dfn/standard-deviation (dataset :Used_Rating_Score))]}}})
 
