@@ -113,8 +113,8 @@
   ;todo find out why I'm still getting a Reflection warning: call to method predict on smile.base.svm.KernelMachine can't be resolved (no such method)
   (let [kernel-machine (fit-RBF-SVR (:features-array data) (:y-array data) (:sigma data) eps C)
         raw-predictions (.predict ^KernelMachine kernel-machine (:features-array data))
-        rsq (RSS/of (:y-array data) raw-predictions)]
-    (merge data {:kernel-machine kernel-machine :predictions (map (get-in data [:y :predict-fn]) (seq raw-predictions)) :rsq rsq})))
+        rss (RSS/of (:y-array data) raw-predictions)]
+    (merge data {:kernel-machine kernel-machine :predictions (map (get-in data [:y :predict-fn]) (seq raw-predictions)) :rsq (- 1 (/ rss (dfn/sum-of-squares (:y-array data))))})))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
