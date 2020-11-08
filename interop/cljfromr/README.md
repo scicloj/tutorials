@@ -15,7 +15,7 @@ We have been exploring more comprehensive solutions, decent support for data con
 ## Requirement
 * R
 * rJava
-* Leiningen
+* [Leiningen](https://leiningen.org/Leiningen)
 
 ## Usage
 
