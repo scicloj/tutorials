@@ -1,4 +1,4 @@
-# cljfromr
+# Calling Clojure from R
 
 A basic example of using Clojure from R
 
