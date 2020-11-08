@@ -55,7 +55,7 @@ You should see the result updated to match the new definition.
 
 ## Known issues
 
-* While connecting to nREPL (see the comments in the code), your development environment might be missing some runtime dependencies such as [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl). To solve that, you may add them (with the relevant version) to [project.clj](./project.clj).
+* While connecting to nREPL, your development environment might be missing some runtime dependencies such as [cider-nrepl](https://github.com/clojure-emacs/cider-nrepl). To solve that, you may add them (with the relevant version) to [project.clj](./project.clj).
 * Underscores and hyphens in names might be a bit tricky due to the Clojure compilation rules. If you are trying this code with different names, you should expect some errors around that until you get it right.
 
 ## Related projects
