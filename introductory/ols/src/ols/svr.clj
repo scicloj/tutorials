@@ -1,8 +1,9 @@
 (ns ols.svr
-  (:require [tech.ml.dataset :as ds]
-            [tech.v2.datatype.functional :as dfn]
-            [tech.ml.dataset.pipeline :as ds-pipe]
-            [tech.libs.smile.data :as ts])
+  (:require [tech.v3.dataset :as ds]
+            [tech.v3.datatype.functional :as dfn]
+            [tech.v3.dataset.categorical :as categorical]
+            [tech.v3.dataset.math :as dsm]
+            [tech.v3.libs.smile.data :as ds-smile])
   (:import (smile.math.kernel GaussianKernel)
            (smile.base.svm SVR KernelMachine)
            (smile.validation RSS)
@@ -10,10 +11,12 @@
            (smile.regression OLS LinearModel)
            (smile.data DataFrame)))
 
+
 ;Note we are using smile Java interop.
 ;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
 ;We'll be spending as much time as possible within Clojure / tech.ml, and calling smile only for the actual regression.
 (set! *warn-on-reflection* true)                            ;we'll be calling some Java methods
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; MODEL DEFINITIONS ;;;
@@ -26,23 +29,21 @@
   [dataset]
   {:dataset         dataset
    :id-name         :Bond
-   :y               {:column :Used_ZTW :predict-fn #(Math/exp %)}
-   :transformations [{:column :Used_ZTW :fn #(dfn/log (ds-pipe/col))}]
+   :y               {:column :Used_ZTW :predict-fn dfn/exp}
+   :transformations [{:column :Used_ZTW :assoc-fn #(dfn/log (% :Used_ZTW))}]
    :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
-   :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :args {:Used_Duration     [(dfn/mean (dataset :Used_Duration)) (dfn/standard-deviation (dataset :Used_Duration))]
-                                                                         :Used_Rating_Score [(dfn/mean (dataset :Used_Rating_Score)) (dfn/standard-deviation (dataset :Used_Rating_Score))]}}})
+   :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :scaler nil}})
 
 (defn new-model-definition
   "log(Used_ZTW) = a.log(Used_Duration) + b.Used_Rating_Score + categorical variables"
   [dataset]
   {:dataset         dataset
    :id-name         :Bond
-   :y               {:column :Used_ZTW :predict-fn #(Math/exp %)}
-   :transformations [{:column :Used_ZTW          :fn #(dfn/log (ds-pipe/col))}
-                     {:column :Used_Duration     :fn #(dfn/log (ds-pipe/col))}]
+   :y               {:column :Used_ZTW :predict-fn dfn/exp}
+   :transformations [{:column :Used_ZTW          :assoc-fn #(dfn/log (% :Used_ZTW))}
+                     {:column :Used_Duration     :assoc-fn #(dfn/log (% :Used_Duration))}]
    :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
-   :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :args {:Used_Duration nil
-                                                                         :Used_Rating_Score [(dfn/mean (dataset :Used_Rating_Score)) (dfn/standard-deviation (dataset :Used_Rating_Score))]}}})
+   :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :scaler nil}})
 
 (defn svr-model-definition
   "Used_ZTW = SVR(Used_Duration, Used_Rating_Score, Country, Sector)"
@@ -51,43 +52,47 @@
    :id-name         :Bond
    :y               {:column :Used_ZTW :predict-fn identity}
    :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
-   :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :args {:Used_Duration [(dfn/mean (dataset :Used_Duration)) (dfn/standard-deviation (dataset :Used_Duration))]
-                                                                         :Used_Rating_Score [(dfn/mean (dataset :Used_Rating_Score)) (dfn/standard-deviation (dataset :Used_Rating_Score))]}}})
+   :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :scaler nil}})
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; PREPARING THE DATA FOR smile PROCESSING ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn ols-prepare-data
-  "The scaling parameters are added here for features that had been transformed."
-  [model-definition]
-  (let [transformed (reduce (fn [dataset line] (ds-pipe/m= dataset (:column line) (:fn line))) (:dataset model-definition) (:transformations model-definition))
-        transformed-scaling (into {} (for [k (get-in model-definition [:std-scale :columns]) :when (some #{k} (map :column (:transformations model-definition)))]
-                                       [k [(dfn/mean (transformed k)) (dfn/standard-deviation (transformed k))]]))
-        clean-data (-> transformed
-                       (ds-pipe/one-hot (get-in model-definition [:one-hot :columns]))
-                       (ds/remove-columns (get-in model-definition [:one-hot :removals]))
-                       (ds-pipe/std-scale (get-in model-definition [:std-scale :columns])))
-        features-ds (ds/remove-columns clean-data [(:id-name model-definition) (get-in model-definition [:y :column])])]
-    (assoc model-definition
-      :std-scale      (assoc (:std-scale model-definition) :args (merge (get-in model-definition [:std-scale :args]) transformed-scaling))
-      :ols-formula    (Formula/lhs (name (get-in model-definition [:y :column]))) ; warning - you need a name here, keyword will fail
-      :dataframe      (ts/dataset->dataframe (ds/remove-column clean-data (:id-name model-definition)))
-      :features-cols  (ds/column-names features-ds))))          ;we need to know the order
+(defn build-column
+  "We can either assoc a new column or build from existing columns"
+  [dataset line]
+  (if (contains? line :assoc-fn)
+    (assoc dataset (:column line) ((:assoc-fn line) dataset))
+    (ds/column-map dataset (:column line) (:map-fn line) nil (:arg-cols line))))
 
-(defn svr-prepare-data
-  "Note SVR wants Java arrays"
-  [model-definition]
-  (let [clean-data (-> (:dataset model-definition)
-                       (ds-pipe/one-hot (get-in model-definition [:one-hot :columns]))
-                       (ds/remove-columns (get-in model-definition [:one-hot :removals]))
-                       (ds-pipe/std-scale (get-in model-definition [:std-scale :columns])))
+(defn build-many-columns [dataset features]
+  (reduce build-column dataset features))
+
+(defn one-hot-reducer
+  "Removals only important for OLS models with small amount of features to avoid colinearity"
+  [source-dataset cols removals]
+  (ds/remove-columns
+    (reduce (fn [dataset col] (categorical/transform-one-hot dataset (categorical/fit-one-hot dataset col))) source-dataset cols)
+    removals))
+
+(defn prepare-data
+  "The scaling parameters are added here for features that had been transformed. model-type is :ols or :svr"
+  [model-definition model-type]
+  (let [transformed (build-many-columns (:dataset model-definition) (:transformations model-definition))
+        scaler (dsm/fit-std-scale (ds/select-columns transformed (get-in model-definition [:std-scale :columns])))
+        clean-data (-> transformed
+                       (one-hot-reducer (get-in model-definition [:one-hot :columns]) (get-in model-definition [:one-hot :removals]))
+                       (dsm/transform-std-scale scaler))
         features-ds (ds/remove-columns clean-data [(:id-name model-definition) (get-in model-definition [:y :column])])]
     (assoc model-definition
-      :features-cols  (ds/column-names features-ds)          ;we need to know the order
-      :sigma          (Math/sqrt (* 0.5 (ds/column-count features-ds) (dfn/variance (flatten (ds/value-reader features-ds)))))
-      :features-array (.toArray (ts/dataset->dataframe features-ds))
-      :y-array        (.array (ts/column->smile (clean-data (get-in model-definition [:y :column])))))))
+      :std-scale      (assoc (:std-scale model-definition) :scaler scaler)
+      :features-cols  (ds/column-names features-ds) ;we need to know the order to predict later
+      :ols-formula    (if (= :ols model-type) (Formula/lhs (name (get-in model-definition [:y :column])))) ; warning - you need a name here, keyword will fail
+      :dataframe      (if (= :ols model-type) (ds-smile/dataset->dataframe (ds/remove-column clean-data (:id-name model-definition))))
+      :sigma          (if (= :svr model-type) (Math/sqrt (* 0.5 (ds/column-count features-ds) (dfn/variance (vec (flatten (ds/value-reader features-ds)))))))
+      :features-array (if (= :svr model-type) (.toArray (ds-smile/dataset->dataframe features-ds)))
+      :y-array        (if (= :svr model-type) (.array (ds-smile/column->smile-column (clean-data (get-in model-definition [:y :column]))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -98,7 +103,7 @@
   "Putting it all together, the model / the predictions and the R2"
   [data]
   (let [ols (OLS/fit (:ols-formula data) (:dataframe data))]
-    (merge data {:ols ols :predictions (map (get-in data [:y :predict-fn]) (seq (.predict ^LinearModel ols ^DataFrame (:dataframe data)))) :rsq (.RSquared ^LinearModel ols)})))
+    (merge data {:ols ols :predictions ((get-in data [:y :predict-fn]) (vec (.predict ^LinearModel ols ^DataFrame (:dataframe data)))) :rsq (.RSquared ^LinearModel ols)})))
 
 (defn fit-RBF-SVR [x y sigma eps C]
   "This is the SVR fit function, returning a smile.base.svm.KernelMachine which we can use to predict.
@@ -114,7 +119,7 @@
   (let [kernel-machine (fit-RBF-SVR (:features-array data) (:y-array data) (:sigma data) eps C)
         raw-predictions (.predict ^KernelMachine kernel-machine (:features-array data))
         rss (RSS/of (:y-array data) raw-predictions)]
-    (merge data {:kernel-machine kernel-machine :predictions (map (get-in data [:y :predict-fn]) (seq raw-predictions)) :rsq (- 1 (/ rss (dfn/sum-of-squares (:y-array data))))})))
+    (merge data {:kernel-machine kernel-machine :predictions ((get-in data [:y :predict-fn]) (vec raw-predictions)) :rsq (- 1 (/ rss (dfn/distance-squared (:y-array data) (repeat 0.))))})))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -122,8 +127,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn ols-predict-scalar [data xmap]
-  "The order of the data needs to match the order of the training data AND we need the intercept first, set at 1.0"
-  (letfn [(normalizer [id log?] (let [[m s] (get-in data [:std-scale :args id])] (/ (- (if log? (Math/log (xmap id)) (xmap id)) m) s)))]
+  "The order of the data needs to match the order of the training data AND we need the intercept first, set at 1.0
+  Ugly hack here - normalizer is set to use log for new model
+  "
+  (letfn [(normalizer [id log?] (let [{m :mean s :standard-deviation} (get-in data [:std-scale :scaler id])] (/ (- (if log? (Math/log (xmap id)) (xmap id)) m) s)))]
     ((get-in data [:y :predict-fn])
      (.predict
        ^LinearModel (:ols data)
@@ -139,7 +146,7 @@
 (defn svr-predict-scalar [data xmap]
   "The order of the data needs to match the order of the training data."
   ;todo find out why I'm still getting a Reflection warning: call to method predict on smile.base.svm.KernelMachine can't be resolved (no such method)
-  (letfn [(normalizer [id] (let [[m s] (get-in data [:std-scale :args id])] (/ (- (xmap id) m) s)))]
+  (letfn [(normalizer [id] (let [{m :mean s :standard-deviation} (get-in data [:std-scale :scaler id])] (/ (- (xmap id) m) s)))]
     ((get-in data [:y :predict-fn])
      (.predict
        ^KernelMachine (:kernel-machine data)
@@ -152,26 +159,27 @@
                       (keyword (str "Sector-" (xmap :Sector))) 1.0
                       0.0))))))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;
 ;;; ACTUALLY DO IT ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
-(defn get-svr-model-output [dataset]                           ;(pull-quant-model)
+(defn get-svr-model-output [dataset]
   (-> dataset
       (svr-model-definition)
-      (svr-prepare-data)
+      (prepare-data :svr)
       (svr-full-training 0.05 1000)))
 
 (defn get-legacy-model-output [dataset]
   (-> dataset
       (legacy-model-definition)
-      (ols-prepare-data)
+      (prepare-data :ols)
       (ols-full-training)))
 
 (defn get-new-model-output [dataset]
   (-> dataset
       (new-model-definition)
-      (ols-prepare-data)
+      (prepare-data :ols)
       (ols-full-training)))
 
 
@@ -187,7 +195,7 @@
 
 (def res (assoc qm :legacy (:predictions legacymodel) :new (:predictions newmodel) :svr (:predictions svrmodel)))
 
-(ds/filter-column "Bond-42" :Bond res)
+(ds/filter-column res :Bond "Bond-42")
 ;|   :Bond |     :Sector | :Country | :Used_Duration | :Used_Rating_Score | :Used_ZTW | :legacy |  :new |  :svr |
 ;|---------|-------------|----------|----------------|--------------------|-----------|---------|-------|-------|
 ;| Bond-42 | Ovy_naq_Gnf |       BH |           1.16 |                6.0 |      75.2 |   118.0 | 103.1 | 75.15 |

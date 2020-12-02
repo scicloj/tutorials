@@ -1,14 +1,14 @@
 (ns ols.core
   (:require
-    [tech.ml.dataset :as ds]
-    [tablecloth.api :as tcapi]
-    [tech.v2.datatype.functional :as dfn]
+    [tech.v3.dataset :as ds]
+    [tech.v3.libs.smile.data :as ds-smile]
+    [tech.v3.datatype.rolling :as rolling]
     [ols.svr :as svr])
   (:import
     (java.time LocalDate)
     (smile.regression OLS LinearModel)
-    (smile.data.formula Formula))
-  )
+    (smile.data.formula Formula)))
+
 
 ;Note we are using smile Java interop.
 ;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
@@ -19,7 +19,7 @@
 ;Our file also has a column of dates in yyyyMMdd format.
 (def stock-data
   "We are explicitly parsing the dates.
-  We are also explicitly parsing vgu0 as it comes as int by default, which will mess up the returns."
+  We are also explicitly parsing vgu0 as it comes as int by default, which will mess up the 333333333333333333333333333333333rns."
   ;TODO find a way to parse into float by default, except for some columns like date
   (ds/->dataset "resources/clj-ols-data.csv" {:parser-fn {"date" [:local-date "yyyyMMdd"]
                                                           "vgu0" :float32}}))
@@ -27,30 +27,29 @@
 (defn stock-data-date-filter
   "Parsing dates allows for easy filtering"
   [yyyy-MM-dd]
-  (ds/filter-column #(.isAfter ^LocalDate % (LocalDate/parse yyyy-MM-dd)) "date" stock-data))
+  (ds/filter-column stock-data "date" #(.isAfter ^LocalDate % (LocalDate/parse yyyy-MM-dd))))
 
 (defn ds-returns
-  "Gets returns for every numerical column, leaves others unchanged.
-  This is neat but can lead to problems if one is using int for dates e.g. 20100101
+  "Gets returns for every column except date.
   In Python this would be df.pct_change()
   WARNING: without the last line, we get an array of same length with 0 in the first row - would nil be better?"
   [dataset]
-  (let [raw (tcapi/update-columns
+  (let [raw (reduce
+              (fn [dts col] (assoc dts col (rolling/fixed-rolling-window (dts col) 2 (fn [[a b]] (dec (/ b a))))))
               dataset
-              :type/numerical
-              #(dfn/fixed-rolling-window 2 (fn [[a b]] (dec (/ b a))) %))]
-    (ds/tail (dec (ds/row-count raw)) raw)))                  ;we remove the first row that otherwise comes as 0.0
+              (remove #{"date"} (ds/column-names dataset)))]
+    (ds/tail raw (dec (ds/row-count raw)))))                  ;we remove the first row that otherwise comes as 0.0
 
 (defn return-ols
   "Smile OLS. Will include intercept by default. This is the object you want to query.
   Example queries if result is called ols:
   (.coefficients ols)
   (.RSquared ols)
-  (.predict ols (double-array [1. 0.05])) ;seems you need the intercept here, set at 1."
+  (.predict ols (double-array [1. 0.05])) ;you need the intercept here, set at 1."
   [y x dataset]
   (->> (ds/select-columns dataset [y x])
        (ds-returns)
-       (tech.libs.smile.data/dataset->dataframe)
+       (ds-smile/dataset->dataframe)
        (OLS/fit (Formula/lhs ^String y))))
 
 (defn ols-beta
