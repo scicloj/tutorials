@@ -25,8 +25,8 @@
   ;; Rended for static html view
   (notespace/render-static-html))
 
-;Note we are using smile Java interop.
-;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
+["Note we are using smile Java interop.
+There's a \"native\" Clojure implementation but more doc for the Java version, hence using that one."]
 
 (comment
   ;; we'll be calling some Java methods
@@ -34,9 +34,10 @@
   ;; (Can't set!: *warn-on-reflection* from non-binding thread)
   (set! *warn-on-reflection* true))
 
-;We will be using closing prices for futures contract,
-;for S&P500 e-mini September 2020, Eurostoxx 50, and a random combination of both.
-;Our file also has a column of dates in yyyyMMdd format.
+["We will be using closing prices for futures contract,
+for S&P500 e-mini September 2020, Eurostoxx 50, and a random combination of both.
+Our file also has a column of dates in yyyyMMdd format."]
+
 (def stock-data
   "We are explicitly parsing the dates.
   We are also explicitly parsing vgu0 as it comes as int by default, which will mess up the 333333333333333333333333333333333rns."
@@ -77,9 +78,8 @@
   [y x dataset]
   (nth (.coefficients ^LinearModel (return-ols y x dataset)) 1))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;We will now go through examples  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+["## We will now go through examples"]
 
 ^kind/dataset
 (ds/head stock-data)

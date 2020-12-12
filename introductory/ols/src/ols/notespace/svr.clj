@@ -27,9 +27,9 @@
   ;; Rended for static html view
   (notespace/render-static-html))
 
-;Note we are using smile Java interop.
-;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
-;We'll be spending as much time as possible within Clojure / tech.ml, and calling smile only for the actual regression.
+["Note we are using smile Java interop.
+There's a \"native\" Clojure implementation but more doc for the Java version, hence using that one.
+We'll be spending as much time as possible within Clojure / tech.ml, and calling smile only for the actual regression."]
 
 (comment
   ;; we'll be calling some Java methods
@@ -37,11 +37,9 @@
   ;; (Can't set!: *warn-on-reflection* from non-binding thread)
   (set! *warn-on-reflection* true))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; MODEL DEFINITIONS ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;
+["## MODEL DEFINITIONS"]
 
-;The source data columns are [:Bond :Used_Duration :Used_Rating_Score :Country :Sector]
+["The source data columns are `[:Bond :Used_Duration :Used_Rating_Score :Country :Sector]`"]
 
 (defn legacy-model-definition
   "log(Used_ZTW) = a.Used_Duration + b.Used_Rating_Score + categorical variables"
@@ -73,10 +71,7 @@
    :one-hot         {:columns [:Country :Sector] :removals [:Country-BH :Sector-Fvanapvny]}
    :std-scale       {:columns [:Used_Duration :Used_Rating_Score] :scaler nil}})
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; PREPARING THE DATA FOR smile PROCESSING ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+["## PREPARING THE DATA FOR smile PROCESSING"]
 
 (defn build-column
   "We can either assoc a new column or build from existing columns"
@@ -114,9 +109,7 @@
       :y-array        (if (= :svr model-type) (.array (ds-smile/column->smile-column (clean-data (get-in model-definition [:y :column]))))))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;
-;;; smile TRAINING ;;;
-;;;;;;;;;;;;;;;;;;;;;;
+["## smile TRAINING"]
 
 (defn ols-full-training
   "Putting it all together, the model / the predictions and the R2"
@@ -140,10 +133,7 @@
         rss (RSS/of (:y-array data) raw-predictions)]
     (merge data {:kernel-machine kernel-machine :predictions ((get-in data [:y :predict-fn]) (vec raw-predictions)) :rsq (- 1 (/ rss (dfn/distance-squared (:y-array data) (repeat 0.))))})))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; SCALAR PREDICTOR FUNCTIONS ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+["## SCALAR PREDICTOR FUNCTIONS"]
 
 (defn ols-predict-scalar [data xmap]
   "The order of the data needs to match the order of the training data AND we need the intercept first, set at 1.0
@@ -178,10 +168,7 @@
                       (keyword (str "Sector-" (xmap :Sector))) 1.0
                       0.0))))))))
 
-
-;;;;;;;;;;;;;;;;;;;;;;
-;;; ACTUALLY DO IT ;;;
-;;;;;;;;;;;;;;;;;;;;;;
+["## ACTUALLY DO IT"]
 
 (defn get-svr-model-output [dataset]
   (-> dataset
@@ -203,8 +190,9 @@
 
 
 (def qm (ds/->dataset "resources/bonds.csv" {:key-fn keyword}) )
-;This is an anonymized dataset of bonds across countries and sectors, with their durations, rating and spread.
-;We are trying to infer the spread (Used_ZTW = z-spread to worst)
+
+["This is an anonymized dataset of bonds across countries and sectors, with their durations, rating and spread.
+We are trying to infer the spread (Used_ZTW = z-spread to worst)"]
 
 (def svrmodel (get-svr-model-output qm))
 
@@ -215,15 +203,9 @@
 (def res (assoc qm :legacy (:predictions legacymodel) :new (:predictions newmodel) :svr (:predictions svrmodel)))
 
 (ds/filter-column res :Bond "Bond-42")
-;|   :Bond |     :Sector | :Country | :Used_Duration | :Used_Rating_Score | :Used_ZTW | :legacy |  :new |  :svr |
-;|---------|-------------|----------|----------------|--------------------|-----------|---------|-------|-------|
-;| Bond-42 | Ovy_naq_Gnf |       BH |           1.16 |                6.0 |      75.2 |   118.0 | 103.1 | 75.15 |
 
 (ols-predict-scalar legacymodel {:Used_Duration 1.16 :Used_Rating_Score 6.0 :Country "BH" :Sector "Ovy_naq_Gnf"})
-;=> 118.01535809799998
 
 (ols-predict-scalar newmodel {:Used_Duration 1.16 :Used_Rating_Score 6.0 :Country "BH" :Sector "Ovy_naq_Gnf"})
-;=> 103.1329755725273
 
 (svr-predict-scalar svrmodel {:Used_Duration 1.16 :Used_Rating_Score 6.0 :Country "BH" :Sector "Ovy_naq_Gnf"})
-;=> 75.14990884257375
