@@ -8,5 +8,6 @@
                  [com.github.haifengl/smile-mkl "2.5.3"]
                  ;[org.clojars.haifengl/smile "2.5.3"]; not necessary
                  ;[org.bytedeco/arpack-ng "3.7.0-1.5.3"];can't get this to work
-                 [techascent/tech.ml.dataset "5.00-beta-18"]]
+                 [techascent/tech.ml.dataset "5.00-beta-18"]
+                 [scicloj/notespace "3-alpha3-SNAPSHOT"]]
   :repl-options {:init-ns ols.core})
