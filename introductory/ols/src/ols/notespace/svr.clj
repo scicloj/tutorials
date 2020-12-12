@@ -1,9 +1,11 @@
-(ns ols.svr
+(ns ols.notespace.svr
   (:require [tech.v3.dataset :as ds]
             [tech.v3.datatype.functional :as dfn]
             [tech.v3.dataset.categorical :as categorical]
             [tech.v3.dataset.math :as dsm]
-            [tech.v3.libs.smile.data :as ds-smile])
+            [tech.v3.libs.smile.data :as ds-smile]
+            [notespace.api :as notespace]
+            [notespace.kinds :as kind])
   (:import (smile.math.kernel GaussianKernel)
            (smile.base.svm SVR KernelMachine)
            (smile.validation RSS)
@@ -11,12 +13,29 @@
            (smile.regression OLS LinearModel)
            (smile.data DataFrame)))
 
+^kind/hidden
+(comment
+  ;; Manually start an empty notespace, and open the browser view
+  (notespace/init-with-browser)
+
+  ;; Clear an existing notespace (and the browser view)
+  (notespace/init)
+
+  ;; Evaluate a whole notespace (updating the browser view)
+  (notespace/eval-this-notespace)
+
+  ;; Rended for static html view
+  (notespace/render-static-html))
 
 ;Note we are using smile Java interop.
 ;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
 ;We'll be spending as much time as possible within Clojure / tech.ml, and calling smile only for the actual regression.
-(set! *warn-on-reflection* true)                            ;we'll be calling some Java methods
 
+(comment
+  ;; we'll be calling some Java methods
+  ;; commenting this out, since it fails as a notespace note
+  ;; (Can't set!: *warn-on-reflection* from non-binding thread)
+  (set! *warn-on-reflection* true))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; MODEL DEFINITIONS ;;;

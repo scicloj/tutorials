@@ -1,18 +1,38 @@
-(ns ols.core
+(ns ols.notespace.core
   (:require
     [tech.v3.dataset :as ds]
     [tech.v3.libs.smile.data :as ds-smile]
     [tech.v3.datatype.rolling :as rolling]
-    [ols.svr :as svr])
+    [ols.notespace.svr :as svr]
+    [notespace.api :as notespace]
+    [notespace.kinds :as kind])
   (:import
     (java.time LocalDate)
     (smile.regression OLS LinearModel)
     (smile.data.formula Formula)))
 
+^kind/hidden
+(comment
+  ;; Manually start an empty notespace, and open the browser view
+  (notespace/init-with-browser)
+
+  ;; Clear an existing notespace (and the browser view)
+  (notespace/init)
+
+  ;; Evaluate a whole notespace (updating the browser view)
+  (notespace/eval-this-notespace)
+
+  ;; Rended for static html view
+  (notespace/render-static-html))
 
 ;Note we are using smile Java interop.
 ;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
-(set! *warn-on-reflection* true)                            ;we'll be calling some Java methods
+
+(comment
+  ;; we'll be calling some Java methods
+  ;; commenting this out, since it fails as a notespace note
+  ;; (Can't set!: *warn-on-reflection* from non-binding thread)
+  (set! *warn-on-reflection* true))
 
 ;We will be using closing prices for futures contract,
 ;for S&P500 e-mini September 2020, Eurostoxx 50, and a random combination of both.
@@ -61,62 +81,26 @@
 ;We will now go through examples  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(println (ds/head stock-data))
-;|       date |     esu0 |   vgu0 |    random |
-;|------------|----------|--------|-----------|
-;| 2020-01-02 | 3238.375 | 3707.0 | 3459.6875 |
-;| 2020-01-03 | 3214.625 | 3679.0 | 3438.8125 |
-;| 2020-01-06 | 3222.875 | 3664.0 | 3453.4375 |
-;| 2020-01-07 | 3214.625 | 3675.0 | 3422.8125 |
-;| 2020-01-08 | 3239.875 | 3686.0 | 3477.9375 |
+^kind/dataset
+(ds/head stock-data)
 
-(println (ds/head (stock-data-date-filter "2020-06-10")))
-;|       date |     esu0 |   vgu0 |    random |
-;|------------|----------|--------|-----------|
-;| 2020-06-11 | 2990.500 | 3125.0 | 3038.7500 |
-;| 2020-06-12 | 3014.875 | 3112.0 | 3050.4375 |
-;| 2020-06-15 | 3053.000 | 3108.0 | 3080.5000 |
-;| 2020-06-16 | 3109.375 | 3212.0 | 3170.6875 |
-;| 2020-06-17 | 3098.250 | 3236.0 | 3174.1250 |
+^kind/dataset
+(ds/head (stock-data-date-filter "2020-06-10"))
 
-(println (ds/head (ds-returns stock-data)))
-;|       date |        esu0 |        vgu0 |      random |
-;|------------|-------------|-------------|-------------|
-;| 2020-01-03 | -0.00733393 | -0.00755328 | -0.00603378 |
-;| 2020-01-06 |  0.00256640 | -0.00407719 |  0.00425292 |
-;| 2020-01-07 | -0.00255983 |  0.00300218 | -0.00886798 |
-;| 2020-01-08 |  0.00785473 |  0.00299320 |  0.01610518 |
-;| 2020-01-09 |  0.00486130 |  0.00569723 | -0.00363002 |
+^kind/dataset
+(ds/head (ds-returns stock-data))
 
-(println (return-ols "esu0" "vgu0" stock-data))
-;#object[smile.regression.LinearModel 0x5a2beda4 Linear Model:
-;
-;        Residuals:
-;        Min          1Q      Median          3Q         Max
-;        -0.0714     -0.0067      0.0001      0.0068      0.0970
-;
-;        Coefficients:
-;        Estimate Std. Error    t value   Pr(>|t|)
-;        Intercept           0.0009     0.0014     0.6875     0.4928
-;        vgu0                0.6694     0.0615    10.8755     0.0000 ***
-;        ---------------------------------------------------------------------
-;        Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-;
-;        Residual standard error: 0.0176 on 163 degrees of freedom
-;        Multiple R-squared: 0.4205,    Adjusted R-squared: 0.4169
-;        F-statistic: 118.2771 on 2 and 163 DF,  p-value: 4.662e-21
-;        ]
+^kind/md ; rendering this as code inside markdown
+["```"
+ (return-ols "esu0" "vgu0" stock-data)
+ "```"]
 
-(println (.RSquared ^LinearModel (return-ols "esu0" "vgu0" stock-data)))
-;0.4205001932692286
+(.RSquared ^LinearModel (return-ols "esu0" "vgu0" stock-data))
 
-(println (.predict ^LinearModel (return-ols "esu0" "vgu0" stock-data) (double-array [1.0 0.05])))
-;0.0344087602118561
+(.predict ^LinearModel (return-ols "esu0" "vgu0" stock-data) (double-array [1.0 0.05]))
 
-(println (ols-beta "esu0" "vgu0" stock-data))
-;0.6693674735898943
+(ols-beta "esu0" "vgu0" stock-data)
 
-(println (ols-beta "esu0" "random" stock-data))
-;0.8758305642013671
+(ols-beta "esu0" "random" stock-data)
 
 
