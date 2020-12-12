@@ -2,6 +2,12 @@
 
 A simple regression tutorial using tech.ml.dataset and smile. It includes simple one variable regression in the ols.clj file, and a more elaborate example with multiple factor OLS and Support Vector Regression in the svr.clj file.
 
+## Rendered tutorials
+
+Temporary links (will probably be moved):
+[core](https://scicloj.github.io/tutorials/introductory/ols/doc/ols/notespace/core/)
+[svr](https://scicloj.github.io/tutorials/introductory/ols/doc/ols/notespace/svr/)
+
 ## Usage
 
 Download and set as separate project.
