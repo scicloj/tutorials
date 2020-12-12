@@ -5,8 +5,8 @@ A simple regression tutorial using tech.ml.dataset and smile. It includes simple
 ## Rendered tutorials
 
 Temporary links (will probably be moved):
-[core](https://scicloj.github.io/tutorials/introductory/ols/doc/ols/notespace/core/)
-[svr](https://scicloj.github.io/tutorials/introductory/ols/doc/ols/notespace/svr/)
+* [core](https://scicloj.github.io/tutorials/introductory/ols/doc/ols/notespace/core/)
+* [svr](https://scicloj.github.io/tutorials/introductory/ols/doc/ols/notespace/svr/)
 
 ## Usage
 
