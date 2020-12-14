@@ -1,38 +1,61 @@
 (ns ols.core
   (:require
+    [notespace.api :as notespace]
+    [notespace.kinds :as kind]
     [tech.v3.dataset :as ds]
     [tech.v3.libs.smile.data :as ds-smile]
     [tech.v3.datatype.rolling :as rolling]
-    [ols.svr :as svr])
+    ;[ols.svr :as svr]
+    )
   (:import
     (java.time LocalDate)
     (smile.regression OLS LinearModel)
     (smile.data.formula Formula)))
 
+^kind/hidden
+(comment
+  ;; Manually start an empty notespace, and open the browser view
+  (notespace/init-with-browser)
 
-;Note we are using smile Java interop.
-;There's a "native" Clojure implementation but more doc for the Java version, hence using that one.
-(set! *warn-on-reflection* true)                            ;we'll be calling some Java methods
+  ;; Clear an existing notespace (and the browser view)
+  (notespace/init)
 
-;We will be using closing prices for futures contract,
-;for S&P500 e-mini September 2020, Eurostoxx 50, and a random combination of both.
-;Our file also has a column of dates in yyyyMMdd format.
+  ;; Evaluate a whole notespace (updating the browser view)
+  (notespace/eval-this-notespace)
+
+  ;; Rended for static html view
+  (notespace/render-static-html))
+
+["# Basic OLS regression with tech.ml.dataset and smile"]
+
+["The purpose of this notebook is to show basic data manipulation with tech.ml.dataset, and perform a linear regression between two vectors with the smile Java package. We will be comparing with Python / pandas where appropriate."]
+["We will use equity index futures data: closing prices for S&P500 e-mini September 2020 contract, same for Eurostoxx 50, and a random combination of both. Our file also has a column of dates in yyyyMMdd format."]
+
+["Note we are using smile Java interop. There's a \"native\" Clojure implementation but more doc for the Java version, hence using that one.\n"]
+
+(comment
+  ;; we'll be calling some Java methods
+  ;; commenting this out, since it fails as a notespace note
+  ;; (Can't set!: *warn-on-reflection* from non-binding thread)
+  (set! *warn-on-reflection* true))
+
+["## Reading the file"]
+["We are explicitly parsing the dates.  We are also explicitly parsing vgu0 as it comes as `int` by default, which can mess up the returns later."]
+
 (def stock-data
-  "We are explicitly parsing the dates.
-  We are also explicitly parsing vgu0 as it comes as int by default, which will mess up the 333333333333333333333333333333333rns."
   ;TODO find a way to parse into float by default, except for some columns like date
   (ds/->dataset "resources/clj-ols-data.csv" {:parser-fn {"date" [:local-date "yyyyMMdd"]
                                                           "vgu0" :float32}}))
+["## Helpful functions"]
+["First we define a date filter. The below will filter the data for dates *after* the input date. Think of it as pandas `df.loc[df.index>date]`."]
 
 (defn stock-data-date-filter
-  "Parsing dates allows for easy filtering"
   [yyyy-MM-dd]
   (ds/filter-column stock-data "date" #(.isAfter ^LocalDate % (LocalDate/parse yyyy-MM-dd))))
 
+["We need the stock market returns to perform our regression. We will calculate them column by column through a rolling window of 2 rows, excluding the date column. Note that by default tech.ml returns arrays of the same length as the input, which is generally a good thing. However in this case I will remove the first result, which tech.ml defaults to 0, while it should be undefined. This function is the rough equivalent of `df.pct_change()` in pandas."]
+
 (defn ds-returns
-  "Gets returns for every column except date.
-  In Python this would be df.pct_change()
-  WARNING: without the last line, we get an array of same length with 0 in the first row - would nil be better?"
   [dataset]
   (let [raw (reduce
               (fn [dts col] (assoc dts col (rolling/fixed-rolling-window (dts col) 2 (fn [[a b]] (dec (/ b a))))))
@@ -40,83 +63,59 @@
               (remove #{"date"} (ds/column-names dataset)))]
     (ds/tail raw (dec (ds/row-count raw)))))                  ;we remove the first row that otherwise comes as 0.0
 
+["## smile OLS"]
+
+^kind/md-nocode
+["smile will return an OLS object that can be queried. The regression includes the intercept by default. Example queries:"
+"* `(.coefficients ols)`
+* `(.RSquared ols)`
+* `(.predict ols (double-array [1. 0.05]))` *you need the intercept here, set at 1*"]
 (defn return-ols
-  "Smile OLS. Will include intercept by default. This is the object you want to query.
-  Example queries if result is called ols:
-  (.coefficients ols)
-  (.RSquared ols)
-  (.predict ols (double-array [1. 0.05])) ;you need the intercept here, set at 1."
-  [y x dataset]
-  (->> (ds/select-columns dataset [y x])
-       (ds-returns)
-       (ds-smile/dataset->dataframe)
-       (OLS/fit (Formula/lhs ^String y))))
+  [dataset y x]
+  (OLS/fit
+    (Formula/lhs ^String y)
+    (-> dataset
+        (ds/select-columns [y x])
+        (ds-returns)
+        (ds-smile/dataset->dataframe))))
 
+["We also define a function to access the beta directly."]
 (defn ols-beta
-  "Get straight to the beta"
-  [y x dataset]
-  (nth (.coefficients ^LinearModel (return-ols y x dataset)) 1))
+  [dataset y x]
+  (nth (.coefficients ^LinearModel (return-ols dataset y x)) 1))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;We will now go through examples  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+["## Examples"]
 
-(println (ds/head stock-data))
-;|       date |     esu0 |   vgu0 |    random |
-;|------------|----------|--------|-----------|
-;| 2020-01-02 | 3238.375 | 3707.0 | 3459.6875 |
-;| 2020-01-03 | 3214.625 | 3679.0 | 3438.8125 |
-;| 2020-01-06 | 3222.875 | 3664.0 | 3453.4375 |
-;| 2020-01-07 | 3214.625 | 3675.0 | 3422.8125 |
-;| 2020-01-08 | 3239.875 | 3686.0 | 3477.9375 |
+["Get the head of a dataset"]
+^kind/dataset
+(ds/head stock-data)
 
-(println (ds/head (stock-data-date-filter "2020-06-10")))
-;|       date |     esu0 |   vgu0 |    random |
-;|------------|----------|--------|-----------|
-;| 2020-06-11 | 2990.500 | 3125.0 | 3038.7500 |
-;| 2020-06-12 | 3014.875 | 3112.0 | 3050.4375 |
-;| 2020-06-15 | 3053.000 | 3108.0 | 3080.5000 |
-;| 2020-06-16 | 3109.375 | 3212.0 | 3170.6875 |
-;| 2020-06-17 | 3098.250 | 3236.0 | 3174.1250 |
+["Get the tail of a dataset"]
+^kind/dataset
+(ds/tail stock-data)
 
-(println (ds/head (ds-returns stock-data)))
-;|       date |        esu0 |        vgu0 |      random |
-;|------------|-------------|-------------|-------------|
-;| 2020-01-03 | -0.00733393 | -0.00755328 | -0.00603378 |
-;| 2020-01-06 |  0.00256640 | -0.00407719 |  0.00425292 |
-;| 2020-01-07 | -0.00255983 |  0.00300218 | -0.00886798 |
-;| 2020-01-08 |  0.00785473 |  0.00299320 |  0.01610518 |
-;| 2020-01-09 |  0.00486130 |  0.00569723 | -0.00363002 |
+["Get the head of the dataset past 10Jun20."]
+^kind/dataset
+(ds/head (stock-data-date-filter "2020-06-10"))
 
-(println (return-ols "esu0" "vgu0" stock-data))
-;#object[smile.regression.LinearModel 0x5a2beda4 Linear Model:
-;
-;        Residuals:
-;        Min          1Q      Median          3Q         Max
-;        -0.0714     -0.0067      0.0001      0.0068      0.0970
-;
-;        Coefficients:
-;        Estimate Std. Error    t value   Pr(>|t|)
-;        Intercept           0.0009     0.0014     0.6875     0.4928
-;        vgu0                0.6694     0.0615    10.8755     0.0000 ***
-;        ---------------------------------------------------------------------
-;        Significance codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-;
-;        Residual standard error: 0.0176 on 163 degrees of freedom
-;        Multiple R-squared: 0.4205,    Adjusted R-squared: 0.4169
-;        F-statistic: 118.2771 on 2 and 163 DF,  p-value: 4.662e-21
-;        ]
+["Get the head of the dataset returns"]
+(ds/head (ds-returns stock-data))
 
-(println (.RSquared ^LinearModel (return-ols "esu0" "vgu0" stock-data)))
-;0.4205001932692286
+["Get the full smile output"]
+^kind/md ; rendering this as code inside markdown
+["```"
+ (return-ols stock-data "esu0" "vgu0")
+ "```"]
 
-(println (.predict ^LinearModel (return-ols "esu0" "vgu0" stock-data) (double-array [1.0 0.05])))
-;0.0344087602118561
+["Get the R2 of a regression"]
+(.RSquared ^LinearModel (return-ols stock-data "esu0" "vgu0"))
 
-(println (ols-beta "esu0" "vgu0" stock-data))
-;0.6693674735898943
+["Get a prediction - be careful that you need to include the intercept as 1.0 and that smile expects a Java double array"]
+(.predict ^LinearModel (return-ols stock-data "esu0" "vgu0") (double-array [1.0 0.05]))
 
-(println (ols-beta "esu0" "random" stock-data))
-;0.8758305642013671
+["Get a couple of betas"]
+(ols-beta stock-data "esu0" "vgu0")
+(ols-beta stock-data "esu0" "random")
 
 
+["## End"]
